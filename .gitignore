@@ -1,0 +1,8 @@
+# Build
+_bin/
+
+# Version info
+./version-info.go
+
+# Mac
+.DS_Store
