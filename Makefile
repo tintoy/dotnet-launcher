@@ -17,11 +17,11 @@ clean:
 	go clean $(REPO_ROOT)/...
 
 # Peform a development (current-platform-only) build.
-dev: version fmt
+dev: fmt
 	go build -o $(BIN_DIRECTORY)/$(EXECUTABLE_NAME)
 
 # Perform a full (all-platforms) build.
-build: version build-windows64 build-linux64 build-mac64
+build: build-windows64 build-linux64 build-mac64
 
 build-windows64: version
 	GOOS=windows GOARCH=amd64 go build -o $(BIN_DIRECTORY)/windows-amd64/$(EXECUTABLE_NAME)

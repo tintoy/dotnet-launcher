@@ -4,25 +4,26 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
-	"strings"
-	"syscall"
-
-	"github.com/kardianos/osext"
+	"path"
 )
 
+// AppName is the name of the application (as launched).
+var AppName string
+
+// OutputPrefix is the prefix attached to all program output.
+var OutputPrefix string
+
 func main() {
-	thisExecutable, err := osext.Executable()
-	if err != nil {
-		log.Fatal(err)
-	}
+	AppName = path.Base(os.Args[0])
+	OutputPrefix = fmt.Sprintf("%s (dotnet-launcher)", AppName)
 
-	entryAssembly := strings.TrimSuffix(thisExecutable, ".exe") + ".dll"
+	log.SetPrefix(OutputPrefix)
+	log.SetFlags(0) // No other prefix
 
-	_, err = os.Stat(entryAssembly)
+	entryAssembly, err := GetEntryAssembly()
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Printf("Cannot find entry-point assembly '%s'.", entryAssembly)
+			log.Printf("Cannot find entry-point assembly '%s'.\n", entryAssembly)
 
 			os.Exit(254)
 		}
@@ -30,41 +31,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dotnetToolPath, err := exec.LookPath("dotnet")
+	// "dotnet MyApp.dll"
+	exitCode, err := RunDotNetCLI(entryAssembly)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dotnetTool := exec.Command(dotnetToolPath, entryAssembly)
-	dotnetTool.Stdin = os.Stdin
-	dotnetTool.Stdout = os.Stdout
-	dotnetTool.Stderr = os.Stderr
-
-	err = dotnetTool.Run()
-	if err != nil {
-		_, ok := err.(*exec.ExitError)
-		if !ok {
-			log.Fatalf("dotnet-launcher: %s",
-				err.Error(),
-			)
-		}
-	}
-
 	// Pass on the exit code.
-	os.Exit(
-		getExitCode(dotnetTool),
-	)
-}
-
-func getExitCode(command *exec.Cmd) int {
-	rawStatus := command.ProcessState.Sys()
-
-	waitStatus, ok := rawStatus.(syscall.WaitStatus)
-	if !ok {
-		log.Fatalf(
-			"dotnet-launcher: Unable to determine process exit code (got unexpected process state '%#v')", rawStatus,
-		)
-	}
-
-	return waitStatus.ExitStatus()
+	os.Exit(exitCode)
 }
