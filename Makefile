@@ -1,4 +1,4 @@
-VERSION = 0.0.1-alpha1
+VERSION = 0.0.1
 
 BIN_DIRECTORY   = _bin
 EXECUTABLE_NAME = dotnet-launcher
@@ -23,13 +23,13 @@ dev: fmt
 # Perform a full (all-platforms) build.
 build: build-windows64 build-linux64 build-mac64
 
-build-windows64: version
+build-windows64:
 	GOOS=windows GOARCH=amd64 go build -o $(BIN_DIRECTORY)/windows-amd64/$(EXECUTABLE_NAME)
 
-build-linux64: version
+build-linux64:
 	GOOS=linux GOARCH=amd64 go build -o $(BIN_DIRECTORY)/linux-amd64/$(EXECUTABLE_NAME)
 
-build-mac64: version
+build-mac64:
 	GOOS=darwin GOARCH=amd64 go build -o $(BIN_DIRECTORY)/darwin-amd64/$(EXECUTABLE_NAME)
 
 # Produce archives for a GitHub release.
